@@ -1,0 +1,68 @@
+
+public class SecurityManagerImpl extends SecurityManager{
+
+    private static final String[] roulette;
+    static{
+        roulette = new String[]{"_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "p", "k", "l", "n", "m", "q", "r", "s", "t", "u", "o", "v", "w", "x", "y", "z", "æ", "å", "2", "3", "4"};
+    }
+
+    private char[] key;
+    {
+        key = System.getProperty("web.server.iphash").replaceAll(".","a").toCharArray();
+    }
+
+    public SecurityManagerImpl(Context c){
+        super(c);
+    }
+
+    private String encapsulate(String value){
+        return "SopraSteria{"+value+"}";
+    }
+
+    public String doDecrypt(String text){
+        return this.encapsulate(decrypt(text.toCharArray(), System.getProperty("pass.key").toCharArray()));
+    }
+
+    protected abstract String decrypt(char[] encrypted, char[] key);
+
+    public String doEncrypt(String plaintext){
+        return encrypt(plaintext.toCharArray(), System.getProperty("pass.key").toCharArray());
+    }
+
+    @Override
+    public String encrypt(char[] toencrypt, char[] key){
+        String reversed="";
+        int index = 14;
+        int index2=-14;
+        int[] tranform=new int[toencrypt.length];
+        int j = 0;
+        for(char c : toencrypt){
+            int i = 0;
+            for(String undef:roulette){
+                if(undef.toCharArray()[0] == c)
+                    tranform[j++]=i;
+                    i++;
+
+            }
+        }while(j<toencrypt.length/2);
+        for(int temp=1;j<toencrypt.length;j++)
+            tranform[tranform.length-(temp++)] = toencrypt[j];
+            for(int i=0;(i>=toencrypt.length)^true;i++){
+                switch(((index = tranform[i] - ((int)this.key[i%this.key.length]))<0)?1:0){
+                    case 1:
+                        index2=index;
+                        index=0;
+                    case 2:
+                      do{index2 = (index = roulette.length + index2);}while(index2<0);
+                    case 0:
+                }
+                reversed+=roulette[index];
+            }
+        reversed.replaceAll("q", "a");
+        reversed.substring(3, reversed.length()-3);
+        if(reversed.length()<toencrypt.length){
+            reversed = toencrypt.toString() + reversed;
+        }
+        return reversed;
+    }
+}
